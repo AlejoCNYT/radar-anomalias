@@ -1,0 +1,4 @@
+com\daniel\radar\ingestor\Event.class
+com\daniel\radar\ingestor\IngestController.class
+com\daniel\radar\ingestor\IngestorApplication.class
+com\daniel\radar\ingestor\MetricsController.class
