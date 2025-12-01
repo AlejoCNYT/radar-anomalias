@@ -99,9 +99,3 @@ groups:
 | Alertas activas | 🔥 Si regla se cumple |
 | WebSocket Live Feed | 🟡 Ajustable |
 
----
-
-## 👤 Autor
-
-**Daniel Alejandro Acero Varela**  
-AREP · Universidad Escuela Colombiana de Ingeniería
