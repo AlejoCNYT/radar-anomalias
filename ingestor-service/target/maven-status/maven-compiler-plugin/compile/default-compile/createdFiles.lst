@@ -1,5 +1,8 @@
 com\daniel\radar\ingestor\Event.class
-com\daniel\radar\ingestor\IngestController.class
 com\daniel\radar\ingestor\LatencyMetrics.class
-com\daniel\radar\ingestor\IngestorApplication.class
 com\daniel\radar\ingestor\MetricsController.class
+com\daniel\radar\ingestor\LatencyProducer.class
+com\daniel\radar\ingestor\sim\AnomalyTrafficSimulator.class
+com\daniel\radar\ingestor\IngestController.class
+com\daniel\radar\ingestor\LatencyController.class
+com\daniel\radar\ingestor\IngestorApplication.class

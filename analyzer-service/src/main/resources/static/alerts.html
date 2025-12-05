@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>📡 Alertas en tiempo real</title>
+
+    <style>
+        body { 
+            background:#0d1117; 
+            color:#e6edf3; 
+            font-family:monospace; 
+            padding:20px; 
+        }
+
+        h2 { 
+            color:#00e676; 
+            margin-bottom:10px; 
+        }
+
+        li { 
+            margin-bottom:6px; 
+            list-style:none;
+        }
+
+        .ok  { color:#00e676; }
+        .bad { color:#ff5555; }
+    </style>
+</head>
+<body>
+
+<h2>📡 Alertas activas</h2>
+<ul id="list"></ul>
+
+<script>
+const API = "http://localhost:8080/alerts";
+
+// LOOP
+setInterval(load, 1500);
+load();
+
+async function load(){
+    const list = document.getElementById("list");
+    try{
+        let res  = await fetch(API);
+        let arr  = await res.json();
+
+        // no alerts
+        if(arr.length === 0){
+            list.innerHTML = `<li class="ok">No hay alertas 🔵</li>`;
+            return;
+        }
+
+        // render alerts
+        list.innerHTML = arr.map(a => {
+            let sev = a.severity || "info";
+            let c   = sev==="high" ? "bad" : "ok";
+            let svc = a.metric || a.service || "metric";
+            let val = Math.round(a.value || a.latency || 0);
+            return `<li class="${c}">⚠ ${svc} — ${val}ms (${sev})</li>`;
+        }).join("");
+
+    }catch(e){
+        list.innerHTML = `<li class="bad">Error obteniendo datos ❌</li>`;
+    }
+}
+</script>
+
+</body>
+</html>

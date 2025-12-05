@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Radar Dashboard</title>
+
+    <style>
+        body { background:#0d1117;color:#e6edf3;font-family:Arial;margin:20px; }
+        h1 { color:#00e676;margin-bottom:10px; }
+        h2 { color:#00bcd4;margin-bottom:10px; }
+
+        .kpi-group { display:flex; gap:20px; margin-bottom:30px; }
+
+        .kpi {
+            background:#161b22;
+            padding:15px;
+            border-radius:10px;
+            flex:1;
+            text-align:center;
+        }
+
+        .kpi h3 { margin:0;font-size:14px;color:#aaa; }
+        .kpi p { margin:5px 0 0 0;font-size:26px;font-weight:bold; }
+
+        .good { color:#00e676; }
+        .warn { color:#ffb300; }
+        .bad  { color:#ff5555; }
+
+        .grid { display:grid; grid-template-columns:1fr 1fr; gap:30px; }
+        .card { background:#161b22;padding:20px;border-radius:10px; }
+
+        canvas { width:100%;height:220px; }
+
+        li { margin-bottom:6px; }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<h1>📊 Radar de Latencia</h1>
+
+<!-- KPIs -->
+<div class="kpi-group">
+    <div class="kpi"><h3>P95</h3><p id="kpi-p95">--</p></div>
+    <div class="kpi"><h3>Promedio</h3><p id="kpi-avg">--</p></div>
+    <div class="kpi"><h3>Alertas</h3><p id="kpi-alerts">--</p></div>
+    <div class="kpi"><h3>Estado</h3><p id="kpi-status">--</p></div>
+</div>
+
+<!-- GRIDS -->
+<div class="grid">
+    <div class="card">
+        <h2>Latencia (promedio)</h2>
+        <canvas id="latencyChart"></canvas>
+    </div>
+
+    <div class="card">
+        <h2>Alertas activas</h2>
+        <ul id="alertList"></ul>
+    </div>
+</div>
+
+<script>
+// ==============================
+// CONFIG
+// ==============================
+const API_ALERTS = "http://localhost:8080/alerts";
+
+// ==============================
+// STATE
+// ==============================
+let history = [];
+
+// MAIN LOOP
+setInterval(loadData, 2000);
+loadData();
+
+async function loadData(){
+    let alerts = await loadAlerts();
+    updateKPIs(alerts);
+    updateChart(alerts);
+}
+
+// ==============================
+// API
+// ==============================
+async function loadAlerts(){
+    try {
+        let res = await fetch(API_ALERTS);
+        return await res.json();
+    } catch(e){
+        console.error("Error alerts:", e);
+        return [];
+    }
+}
+
+// ==============================
+// KPIs
+// ==============================
+function updateKPIs(alerts){
+    let values = alerts.map(a => a.value || a.latency || 0);
+
+    let p95 = percentile(values, 95);
+    let avg = average(values);
+    let count = alerts.length;
+
+    // text
+    document.getElementById("kpi-p95").innerText = Math.round(p95) + " ms";
+    document.getElementById("kpi-avg").innerText = Math.round(avg) + " ms";
+    document.getElementById("kpi-alerts").innerText = count;
+
+    // status
+    let statusElem = document.getElementById("kpi-status");
+    if(p95 > 1500){
+        statusElem.innerText = "🔴 CRÍTICO";
+        statusElem.className = "bad";
+    } else if(p95 > 800){
+        statusElem.innerText = "🟡 ALERTA";
+        statusElem.className = "warn";
+    } else {
+        statusElem.innerText = "🟢 OK";
+        statusElem.className = "good";
+    }
+
+    // list
+    const list = document.getElementById("alertList");
+    list.innerHTML =
+        count === 0
+        ? "<li>No hay alertas 🔵</li>"
+        : alerts.map(a =>
+            `<li>⚠ ${a.metric || a.service} — ${Math.round(a.value)}ms (${a.severity || "?"})</li>`
+          ).join("");
+}
+
+// ==============================
+// UTIL
+// ==============================
+function average(arr){
+    if(arr.length===0) return 0;
+    return arr.reduce((a,b)=>a+b,0)/arr.length;
+}
+
+function percentile(arr, p){
+    if(arr.length===0) return 0;
+    arr = [...arr].sort((a,b)=>a-b);
+    let idx = Math.floor(arr.length * p / 100);
+    return arr[idx];
+}
+
+// ==============================
+// CHART
+// ==============================
+const ctx = document.getElementById("latencyChart").getContext("2d");
+const latencyChart = new Chart(ctx,{
+    type:"line",
+    data:{
+        labels:[],
+        datasets:[{
+            label:"Avg Latency",
+            borderColor:"rgb(0,200,100)",
+            data:[]
+        }]
+    },
+    options:{ scales:{ y:{beginAtZero:true}}}
+});
+
+function updateChart(alerts){
+    let values = alerts.map(a => a.value || a.latency || 0);
+    let avg = average(values);
+
+    latencyChart.data.labels.push("");
+    latencyChart.data.datasets[0].data.push(avg);
+
+    if(latencyChart.data.labels.length > 30){
+        latencyChart.data.labels.shift();
+        latencyChart.data.datasets[0].data.shift();
+    }
+
+    latencyChart.update();
+}
+</script>
+
+</body>
+</html>

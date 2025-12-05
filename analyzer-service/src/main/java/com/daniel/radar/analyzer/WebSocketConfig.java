@@ -12,16 +12,20 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws-alerts")
-                .setAllowedOriginPatterns("*")
-                .withSockJS();
+
+        // Endpoint donde los clientes se conectan
+        registry.addEndpoint("/ws")
+                .setAllowedOriginPatterns("*")   // permitir front en localhost (dashboard)
+                .withSockJS();                   // fallback para navegadores antiguos
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        // prefijo de los destinos a los que el backend envía mensajes
+
+        // Prefix de los topics que el SERVIDOR publica (broadcast)
         registry.enableSimpleBroker("/topic");
-        // prefijo de los destinos a los que el cliente envía mensajes al backend
+
+        // Prefix de los destinos que el CLIENTE envía mensajes al servidor
         registry.setApplicationDestinationPrefixes("/app");
     }
 }
