@@ -1,4 +1,4 @@
-[![Demo del Proyecto](https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg)](https://youtu.be/bggTBPMWeE8)
+[![Demo del Proyecto](https://img.youtube.com/vi/bggTBPMWeE8/hqdefault.jpg)](https://youtu.be/bggTBPMWeE8)
 
 # 📡 Radar de Latencia & Alertas — Sistema de Monitoreo Distribuido
 
